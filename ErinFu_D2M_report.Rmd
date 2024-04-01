@@ -1,0 +1,196 @@
+---
+title             : "Code Sample: Adult Emotion and Children Learning Motivation"
+shorttitle        : "Emotion & Learning Motivation"
+
+author: 
+  - name          : "Erin Fu"
+    affiliation   : "1"
+    corresponding : yes    # Define only one corresponding author
+    address       : "University of Chicago"
+    email         : "yuzhenf@uchicago.edu"
+    role: # Contributorship roles (e.g., CRediT, https://credit.niso.org/)
+      - "Conceptualization"
+      - "Writing - Original Draft Preparation"
+      - "Writing - Review & Editing"
+
+affiliation:
+  - id            : "1"
+    institution   : "University of Chicago"
+
+authornote: |
+  
+
+abstract: |
+  It is widely known that children’s emotions influence their learning motivation, but is their learning motivation also influenced by other people’s expressed emotions? According to the theory of emotional contagion, individuals are affected by the emotions expressed by others. This study aims to explore the possibility adults’ expressed emotions can affect children’s learning motivation. The findings will illuminate the importance of emotions as a psychological state in promoting learning and achievement.
+  
+  <!-- https://tinyurl.com/ybremelq -->
+  
+keywords          : "Emotions, Learning Motivation, Children"
+wordcount         : "71"
+
+bibliography      : "r-references.bib"
+
+floatsintext      : yes
+linenumbers       : no
+draft             : no
+mask              : no
+
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+
+classoption       : "man"
+output            : papaja::apa6_pdf
+latex_engine: xelatex
+header-includes:
+  - \usepackage{colortbl}
+---
+
+```{r setup, include = FALSE}
+library(Require)
+library(tidyverse)
+library(papaja)
+library(broom)
+library(kableExtra)
+if (!require("knitr")) {install.packages("knitr"); require("knitr")}
+if (!require("tinytex")) {install.packages("tinytex"); require("tinytex")}
+knitr::opts_chunk$set(echo = FALSE)
+r_refs("r-references.bib")
+```
+
+``` {r data preparation}
+EM_dataset_wide <- read.csv("data/ErinFu_Dataset_E&M_part.csv")
+EM_dataset_long <- EM_dataset_wide %>%
+  pivot_longer(cols = c("Surprise.Important", "Surprise.Interesting", "Surprise.Difficulty", "Surprise.Motivation", "Awe.Important", "Awe.Interesting", "Awe.Difficulty", "Awe.Motivation", "Enjoyment.Important", "Enjoyment.Interesting", "Enjoyment.Difficulty", "Enjoyment.Motivation", "Neutral.Important", "Neutral.Interesting", "Neutral.Difficulty", "Neutral.Motivation", "Fear.Important", "Fear.Interesting", "Fear.Difficulty", "Fear.Motivation", "Sadness.Important", "Sadness.Interesting", "Sadness.Difficulty", "Sadness.Motivation"), 
+               names_to = "Name", 
+               values_to = "Result") %>%
+  separate_wider_delim(Name,
+                       delim = ".",
+                      names = c("Emotion", "Scale_Type")) %>%
+  separate_wider_delim(Result,
+                       delim = ".",
+                      names = c("Score", "Note"))
+
+EM_dataset_long$Score <- as.numeric(EM_dataset_long$Score)
+```
+
+```{r regression}
+EM_dataset_long$Emotion <- factor(EM_dataset_long$Emotion)
+filtered_data_1 <- subset(EM_dataset_long, Scale_Type == "Motivation")
+filtered_data_1$Emotion <- relevel(filtered_data_1$Emotion, ref = "Neutral")
+regmodel_1 <- lm(Score ~ Emotion + (1|ID), data = filtered_data_1)
+
+regression_results_1 <- tidy(regmodel_1)
+```
+
+``` {r descriptive-analysis, include = FALSE}
+gender_info <- EM_dataset_wide %>%
+  group_by(Child.Gender) %>%
+  count()
+mean_age <- mean(EM_dataset_long$Child.Age.In.Years)
+median_age <- median(EM_dataset_long$Child.Age.In.Years)
+```
+
+```{r, include=FALSE}
+options(tinytex.verbose = TRUE)
+```
+
+```{r analysis-preferences}
+# Seed for random number generation
+set.seed(42)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed)
+```
+
+# Literature Review  
+## Positive Emotions  
+Positive emotions refer to emotional responses that express positive affect [@vandenbos_apa_2007].The most common positive emotions are “well-being” and “happiness” [@lewis_handbook_2008]. Early psychological research did not place as much emphasis on positive emotions as compared to negative emotions [@sauter_more_2010]. First, positive emotions were not as clearly categorized as negative emotions, which made it difficult to conduct relevant research. This is because positive emotions have less cognitive distinction and are therefore more likely to occur more than one of them simultaneously [@lewis_handbook_2008; @tong_differentiation_2015]. In addition, many positive emotions have very similar facial expressions (e.g., smiling), making it difficult for researchers to recognize the types of positive emotions through facial signals [@fredrickson_value_2003]. As a result, many previous studies tend to focus on "happiness" as the only positive emotion [@keltner_taxonomy_2021; @sauter_more_2010]. Second, positive emotions are rarely associated with specific behavioral tendencies [@lewis_handbook_2008]. Positive emotions tend to be more diffuse and less intense than negative emotions, making them difficult to observe directly in experiments [@baumeister_bad_2001; @fredrickson_open_2008]. Finally, positive emotions were considered as not directly linked to the cause of many important psychological disorders [@lewis_handbook_2008], such as depression and anxiety. This also leads to less attention on positive emotions since they seem to have less research value compared to negative emotions.  
+However, in recent years, research on positive emotions and their effects has gradually gained more attention. With the development of relevant theories and face recognition techniques, more and more facial signals of positive emotions have been distinguished and categorized [@revord_categorizing_2021; @girard_reconsidering_2019]. For example, Shiota, Campos, and Keltner [-@shiota_faces_2003] showed that different positive emotions can correspond to distinguished and specific facial muscle movements. The development of categorizing positive emotions has led to more diverse directions in the study of them. At the same time, although positive emotions are not as urgent and intense as negative emotions, they can have a long-term and lasting impact on life [@snyder_oxford_2009, Chapter 3]. This impact is felt in a variety of ways, including promoting physical and mental health [@fredrickson_value_2003], improving community and organizational relationships [@diener2020positive], stimulating creativity and motivation [@bono_charisma_2006], and so on. Researchers have also noted the role of positive emotions in alleviating negative mental states. For example, experiencing a certain level of positive emotions can help people recover from bereavement more quickly [@tedlie_moskowitz_positive_2003]. Many psychological methods associated with enhancing positive emotions have also become non-clinical interventions for treating mental disorders such as depression [@silton_regulating_2020]. As a result, positive mood is no longer only studied as an outcome, but rather as a predictor or influencer in research [@lewis_handbook_2008].  
+
+## Learning Motivation  
+In recent 40 years, learning motivation received plenty of attention in research fields [@mayer_handbook_2011]. Learning motivation is considered one of the initial structures of motivation in education [@amrai_relationship_2011] and is closely related to behaviors that lead to learning [@tokan_effect_2019]. For example, learning motivation can influence continuous learning, such as how much time a learner will spend on a specific subject [@hartnett_importance_2016]. It is also considered to be one of the most important factors in driving learners to accomplish learning goals [@filgona_motivation_2020]. In addition, learning motivation has a positive correlation with learning outcomes [@lin_study_2017]. For children, learning motivation can be a strong predictor for both academic achievement and specific skills [@baker_dimensions_1999; @pakarinen_classroom_2010]. For example, according to a meta-analysis by Quílez-Robres et al. [-@quilez-robres_motivational_2021], learning motivation was positively associated with math achievement, reading skills, and student goals. This also emphasizes the importance of enhancing learning motivation in the teaching and learning process.   
+Several motivation theories were created to explain academic motivation and also its relationship with academic achievement, including self-determination theory [@alivernini_relationship_2011; @kusurkar_how_2013], achievement goal theory [@liem_sociocultural_2012], mindset theory [@chao_rewards_2017] and so on. Among different theories, the self-determination theory created by Richard Ryan and Edward Deci [-@deci_handbook_2004] is one of used most widely in studies. In Self-Determine Theory, or SDT, different types of motivation are distinguished by the reason for raising an action [@deci_general_1985]. Intrinsic and extrinsic motivation are the two most basic categories of motivation. The former arises from doing something for internal dynamics, such as interesting or enjoyable, while the latter stems from doing something for external outcomes [@ryan_intrinsic_2000].   
+Countless studies show a close relationship between intrinsic motivation and learning behaviors or academic outcomes. A meta-analysis [@taylor_self-determination_2014] values intrinsic motivation as the most important type of motivation that influences academic achievement. Students with higher intrinsic motivation tend to have higher classroom engagement or put more effort into their learning, which makes them more likely to achieve better grades [@guthrie_contributions_2007; @walker_identification_2006]. Given this importance, intrinsic motivation always received closer attention in previous research. It is worth mentioning that, however, there are also internal dynamics can also be found in some extrinsic motivations. Ryan and Deci [-@ryan_intrinsic_2020] further refined extrinsic motivation into four types, and identification and integration are two that are relatively internalized. In this case, the type of motivation is not only determined by where they come from, but more importantly, the degree of autonomy. [@ryan_intrinsic_2020].   
+Autonomy is defined as one of the three basic psychological needs in self-determination theory, which refers to a person's feeling of controlling and endorsing his or her behavior [@ryan_self-regulation_2006]. It is also one of the key factors in stimulating goal-directed behaviors [@wang_competence_2019]. In learning, autonomy is considered a predictor for a variety of key educational outcomes [@ryan_intrinsic_2020]. Research shows that is beneficial in increasing exploratory behaviors and improving learning outcomes [@wielenga-meijer_costs_2011]. How to increase and support students' autonomy has also been the topic of much educational research [@jang_engaging_2010; @stephenson_supporting_1998]. The researchers’ focus on autonomy reflects its importance in the field of education. More importantly, satisfying autonomy may lead to enhanced motivation [@meng_live_2015]. Specific to the field of education, providing a learning environment that supports autonomy can cultivate learning motivation [@garcia_effects_1996]. For example, students who thought their instructor allowed students to participate in course decisions felt more autonomy, and reported higher learning motivation at the end of the semester. Therefore, it is reasonable to assume that for motivation, the role of autonomy is more than just categorization but prediction.  
+Previous research has given plenty of elements that can influence the level of autonomy. According to Patall et al.'s research [-@patall_student_2013], people experience more autonomy when performing or choosing a behavior out of interest. In addition, people feel a relatively high degree of willingness and control when identifying with the importance of tasks [@ryan_intrinsic_2020]. Finally, task difficulty might influence self-efficacy [@hughes_learner-controlled_2013], which plays an important role in developing autonomy [@duchatelet_fostering_2019]. In this case, our study plans to measure students’ autonomy from three measurements: 1) interest, 2) importance, and 3) difficulty, and further explore whether they can be predictors of learning motivation.
+
+
+# Methods
+## Participants  
+Participants for this study will be 120 children from four to nine years old. They will be recruited by using XXXXX database of the University of Chicago. Inclusion criteria were: (1) four to nine years old, (2) using English as the first language and speaking English more than 75% of the time in daily life, and (3) no history of ADHD or other attention disorders.  
+
+## Data Collection
+The researcher will develop an online survey using Qualtrics and conduct it on Zoom. Each qualified participant will be invited to a private Zoom online meeting room with a passcode after his or her guardian signed the consent form. The researcher will provide step-by-step real-time instructions for participants to complete the survey with video calling and screen sharing. Children will view six different emotions as expressed by adults toward six different subjects to learn (awe, enjoyment, surprise, neutral, sadness, fear), in a randomized order. Each emotion was expressed by one verbal sentence and one facial expression from four adults (two males and two females). After viewing each expressed emotion, children indicate to what extent they think the subject is 1) interesting, 2) important, 3) difficult, and 4) how much they want to learn the subject. The data collection is now still continuing.
+
+## Material  
+The materials used in this study include 24 facial expression pictures with six different emotions. Besides the emotion of awe, all the pictures will be randomly selected from The Amsterdam Dynamic Facial Expression Set (ADFES). For the emotion of awe, since no database existed that contained images of the facial expressions of awe, all pictures of awe will be selected from the Internet based on the description from Shiota et al. [-@shiota_faces_2003] about the facial expressions of awe. An extra and independent test will be conducted to test the validation of these awe pictures.
+
+## Data analysis
+We used R [@R-base] for all our analyses. Please see all the loaded packages in the footnote^[ `r cite_r("r-references.bib")`].
+Data will be analyzed by using R. The researcher will first summarize the demographic information of participants. For descriptive data, a violin plot will be provided to show the distribution of learning motivation levels in different emotional conditions. For hypothesis testing analysis, a linear mixed effects model will be conducted by using emotion to predict children’s learning motivation, with participant ID included as a random effect. In addition, a plot will be used to show how the correlation between emotions and learning motivation levels changed across different ages.
+
+``` {r emotion-motivation, fig.cap = "Adult's Emotions and Children's Learning Motivation", echo=FALSE}
+EM_dataset_long %>%
+  subset(Scale_Type == "Motivation") %>%
+  group_by(Emotion) %>%
+ggplot(aes(x = Emotion, y = Score, fill = Emotion)) +
+  geom_violin() +
+  coord_cartesian(xlim = c(0,7), ylim = c(0,7)) +
+  scale_y_continuous(breaks = seq(1, 6, by = 1)) +
+  geom_dotplot(binaxis = "y", stackdir = "center", dotsize = 0.6, color = "black", fill = "grey") +
+  labs(title = "The Relationship between Adult's Emotions and Children's Learning Motivation", x = "Emotion", y = "Motivation Levels") +
+  theme(
+    # text = element_text(family = "Times New Roman"),
+    panel.grid.minor.y = element_blank(),
+    panel.grid.major.x = element_line(linetype = 2, linewidth = 0.6),
+    panel.grid.major.y = element_line(linetype = 2, linewidth = 0.6)
+  )
+```
+
+# Results
+
+## Descriptive data
+For 25 children that already recruited and participated in our study, there are `r gender_info[1,2]` females and `r gender_info[2,2]` males.  
+The mean age is `r round(mean_age, 3)` years and median age is `r median_age` years.
+The distribution of learning motivation levels in different emotional conditions is showed in Figure \@ref(fig:emotion-motivation). The shape of the distribution indicates children tend to report higher learning motivation when they are shown positive emotional facial expressions from adults, and lower when they see negative emotional facial expressions from adults towards a subject. The grey points demonstrate the distribution of the score for learning motivation in each emotional condition.
+
+``` {r regressiontable, echo=FALSE, results='asis'}
+regression_table <- regression_results_1 %>%
+  mutate_if(is.numeric, round, digits = 3) %>%
+  mutate_if(is.numeric, function(x) sprintf("%.3f", x))
+knitr::kable(regression_table, format = "markdown", align = "c", caption = "EM Regression Table", label = "regression-table") %>%
+  kable_styling(position = "left", latex_options =c("striped", "hold_position")) %>%
+  column_spec(5, color = "red", bold = TRUE)
+```
+
+``` {r age-emotion-motivation, fig.cap = "Children's Age and Learning Motivation Grouped by Emotions", echo=FALSE}
+EM_dataset_long$Score <- as.numeric(EM_dataset_long$Score)
+EM_dataset_long %>%
+  subset(Scale_Type == "Motivation") %>%
+  group_by(Emotion) %>%
+ggplot(aes(x = Child.Age.In.Years, y = Score)) +
+  geom_smooth(method = "lm") +
+  facet_wrap(.~Emotion, scales = "free_x") +
+  scale_y_continuous(breaks = seq(1, 6, by = 1)) +
+  geom_point() +
+  labs(title = "The Relationship between Children's Age and Learning Motivation", subtitle = 'Grouped by Six Different Emotions', x = "Children's Age (in years)", y = "Motivation Levels") +
+  theme(
+    # text = element_text(family = "Times New Roman"),
+    panel.grid.minor.y = element_blank()
+  )
+```
+
+## Hypothesis testing analysis  
+As it was shown in Table \@ref(tab:regression-table), children’s learning motivation varied by the types of emotional facial expression they received. Taking the emotion of awe as an example, its influence to learning motivation is compared with the intercept (Neutral), $b$ = `r regression_results_1$statistic[[2]]` ($p$ `r apa_p(regression_results_1$p.value[[2]], add_equals = TRUE)`). This indicates that the level of learning motivation in the emotion of awe is significantly higher than that in the emotion of neutral. In this case, we tend to believe awe as a positive emotion can significantly influence learning motivation.  
+In addition, this table also shows that the $b$ value of Fear is `r regression_results_1$statistic[[4]]` and the $b$ value of Sadness is `r regression_results_1$statistic[[5]]`. This means compared with our baseline, both the emotion of fear and sadness, or negative emotions, have negative influence on learning motivation.  
+The correlation between emotions and learning motivation levels changed across different ages is showed in Figure \@ref(fig:age-emotion-motivation). According to the table, for all negative emotions, elder children tend to report lower learning motivation compared with younger children. However, this trend didn’t find for positive emotions. This might indicate that children become more sensitive to negative emotional facial expressions as they growing up.
+
+
+# Discussion
+This research aims to explore the impact on children’s learning motivation of adults’ emotional expressions and focus on positive emotions. Based on the analysis that was already conducted with incomplete data collection, the relationship between positive emotional facial expressions from adults and children’s learning motivation is beginning to take shape. Further analysis with more participants and more complex models (e.g., the correlation of each measurement for motivation, gender differences) is necessary to further confirm this relationship. The results of this study may guide teachers to improve their efficacy by supplying certain emotional expressions in the practical teaching environment. It also helps parents to develop a better grasp of the emotions that they should present when tutoring their children. The research findings will emphasize the importance of expressed emotions as a psychological mechanism for promoting learning motivation.
+
+\newpage
+
+# References
+
+::: {#refs custom-style="Bibliography"}
+:::
